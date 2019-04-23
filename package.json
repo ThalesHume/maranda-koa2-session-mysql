@@ -1,0 +1,22 @@
+{
+  "name": "koa2-session-mysql",
+  "version": "1.0.0",
+  "description": "koa2 session mysql maranda typescript",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://gitee.com/sunny8792/koa2-session-mysql.git"
+  },
+  "keywords": [
+    "koa2",
+    "session",
+    "mysql",
+    "maranda",
+    "typescript"
+  ],
+  "author": "Sunny",
+  "license": "ISC"
+}
