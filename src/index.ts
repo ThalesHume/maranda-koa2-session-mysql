@@ -89,7 +89,7 @@ async function Create<T extends Ctx>(ctx:ParameterizedContext<any,T>, expiry?:nu
 }
 async function Destroy<T extends Ctx>(ctx:ParameterizedContext<any,T>){
     let session = await Session.update({expiry: 0}, {where:{sid:<string>(ctx.SessKey)},logging:false});
-    delete ctx.SessKey;
+    ctx.SessKey = undefined;
     return session;
 }
 

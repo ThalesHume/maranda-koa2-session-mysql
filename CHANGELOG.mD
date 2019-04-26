@@ -8,3 +8,5 @@
     1. change readme 
 ## V1.0.4 
     1. fix bug Session.Destory lack await
+## V1.0.5 
+    1. fix bug delete ctx.SessKey error 

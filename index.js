@@ -92,7 +92,7 @@ exports.Create = Create;
 function Destroy(ctx) {
     return __awaiter(this, void 0, void 0, function* () {
         let session = yield Session.update({ expiry: 0 }, { where: { sid: (ctx.SessKey) }, logging: false });
-        delete ctx.SessKey;
+        ctx.SessKey = undefined;
         return session;
     });
 }
