@@ -7,17 +7,17 @@ app.ts
 import * as Session from 'maranda-koa2-session-mysq'
 import Koa from 'koa';
 import router from "koa-router";
-Router = require('koa-router');
 import {Sequelize} from 'sequelize';
 
-const app = new Koa<any, others & Session.Ctx>();//if have other context
-//you can set the gc_probability(this example means:10/100), tableName(custom tablename,default sessions), gc_type(Session Garbage Collection type, default true, mean the session gc work will do auto, if you set it false, you may do the session gc work by your self)
+//if have other context
+const app = new Koa<any, others & Session.Ctx>();
+//you can set the gc_probability(this example means:number/100, default 10/100), tableName(custom tablename,default sessions), gc_type(Session Garbage Collection type, default true, mean the session gc work will do auto, if you set it false, you may do the session gc work by your self)
 // you mast ensure that there is not table named 'sessions' or your custom tablename in your database_schema
 Session.Init(new sequelize('database_schema', 'username', 'password', {
     dialect: 'mysql',
     host: 'localhost',
     port: 3306,
-}),{gc_probability:10});
+}),{gc_probability:15});
 
 app.use(Session.Middware);
 
@@ -28,12 +28,13 @@ router.get('/', (ctx, next) => {
 router.get('/login', (ctx, next) => {
     let UserCode = 'ss',
         PassWord = 'sss',
-        SessionExpiry = 5*24*60*60; //5 days
+        SessionExpiry = 5*24*60*60*1000; //5 days
     ....
-    await Session.Create(ctx, SessionExpiry, {UserCode:user.UserCode, UserName:user.UserName})
+    await Session.Create(ctx, SessionExpiry, {UserCode, UserName})
     ....
 });
 router.post('/logout', (ctx, next) => {
+    if (!ctx.SessKey) {throw `请登录...`}
     ....
     SessionDestory(ctx);
     ....
