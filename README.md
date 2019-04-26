@@ -26,9 +26,9 @@ router.get('/', (ctx, next) => {
     ...
 });
 router.get('/login', (ctx, next) => {
-    let UserCode = <string>(ctx.request.body.UserCode),
-        PassWord = <string>(ctx.request.body.PassWord),
-        SessionExpiry = <number>(ctx.request.body.Expiry);
+    let UserCode = 'ss',
+        PassWord = 'sss',
+        SessionExpiry = 5*24*60*60; //5 days
     ....
     await Session.Create(ctx, SessionExpiry, {UserCode:user.UserCode, UserName:user.UserName})
     ....
