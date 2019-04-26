@@ -90,8 +90,10 @@ function Create(ctx, expiry, SessionData) {
 }
 exports.Create = Create;
 function Destroy(ctx) {
-    let session = Session.update({ expiry: 0 }, { where: { sid: (ctx.SessKey) }, logging: false });
-    delete ctx.SessKey;
-    return session;
+    return __awaiter(this, void 0, void 0, function* () {
+        let session = yield Session.update({ expiry: 0 }, { where: { sid: (ctx.SessKey) }, logging: false });
+        delete ctx.SessKey;
+        return session;
+    });
 }
 exports.Destroy = Destroy;

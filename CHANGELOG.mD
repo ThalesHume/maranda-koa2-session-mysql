@@ -6,3 +6,5 @@
     1. change the git repository.
 ## V1.0.3 
     1. change readme 
+## V1.0.4 
+    1. fix bug Session.Destory lack await

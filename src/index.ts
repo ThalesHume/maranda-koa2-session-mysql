@@ -87,8 +87,8 @@ async function Create<T extends Ctx>(ctx:ParameterizedContext<any,T>, expiry?:nu
     ctx.cookies.set(Session.sessKey, uuid, {path: '/',overwrite: true,maxAge: expiry == undefined ? Session.sessAge : expiry})
     return session;
 }
-function Destroy<T extends Ctx>(ctx:ParameterizedContext<any,T>){
-    let session = Session.update({expiry: 0}, {where:{sid:<string>(ctx.SessKey)},logging:false});
+async function Destroy<T extends Ctx>(ctx:ParameterizedContext<any,T>){
+    let session = await Session.update({expiry: 0}, {where:{sid:<string>(ctx.SessKey)},logging:false});
     delete ctx.SessKey;
     return session;
 }
