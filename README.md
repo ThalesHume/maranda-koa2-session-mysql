@@ -11,13 +11,13 @@ import {Sequelize} from 'sequelize';
 
 //if have other context
 const app = new Koa<any, others & Session.Ctx>();
-//you can set the gc_probability(this example means:number/100, default 10/100), tableName(custom tablename,default sessions), gc_type(Session Garbage Collection type, default true, mean the session gc work will do auto, if you set it false, you may do the session gc work by your self)
+//you can set the gc_probability(this example 5/100, default 10/100), tableName(custom tablename,default sessions), gc_type(Session Garbage Collection type, default true, mean the session gc work will do auto, if you set it false, you may do the session gc work by your self)
 // you mast ensure that there is not table named 'sessions' or your custom tablename in your database_schema
 Session.Init(new sequelize('database_schema', 'username', 'password', {
     dialect: 'mysql',
     host: 'localhost',
     port: 3306,
-}),{gc_probability:15});
+}),{gc_probability:5});
 
 app.use(Session.Middware);
 
@@ -36,12 +36,12 @@ router.get('/login', (ctx, next) => {
 router.post('/logout', (ctx, next) => {
     if (!ctx.SessKey) {throw `请登录...`}
     ....
-    SessionDestory(ctx);
+    await SessionDestory(ctx);
     ....
 });
 
 
 
 app.use(router.routers())
-app.listen(80);0
+app.listen(80);
 ```
