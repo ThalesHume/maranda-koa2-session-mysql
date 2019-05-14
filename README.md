@@ -4,44 +4,56 @@ npm i --save maranda-koa2-session-mysql
 
 app.ts
 ```
-import * as Session from 'maranda-koa2-session-mysq'
+import Session, {Sequelize, Model, ModelAttributes, DataTypes, Op} from 'maranda-koa2-session-mysql';
 import Koa from 'koa';
-import router from "koa-router";
-import {Sequelize} from 'sequelize';
 
 //if have other context
 const app = new Koa<any, others & Session.Ctx>();
-//you can set the gc_probability(this example 5/100, default 10/100), tableName(custom tablename,default sessions), gc_type(Session Garbage Collection type, default true, mean the session gc work will do auto, if you set it false, you may do the session gc work by your self)
+//you can set the gc_probability(this example 5/100, default 1/100), tableName(custom tablename,default sessions), gc_type(Session Garbage Collection type, default true, mean the session gc work will do auto, if you set it false, you may do the session gc work by your self)
 // you mast ensure that there is not table named 'sessions' or your custom tablename in your database_schema
-Session.Init(new sequelize('database_schema', 'username', 'password', {
+const sequelize = new Sequelize('xxx', 'xxx', 'xxx', {
     dialect: 'mysql',
     host: 'localhost',
     port: 3306,
-}),{gc_probability:5});
+})
+Session.Init(sequelize, {gc_probability:5});
+export {Session, sequelize, Model, ModelAttributes, DataTypes, Op};
 
 app.use(Session.Middware);
-
-router.get('/', (ctx, next) => {
-    if (!ctx.SessKey) {throw `请登录...`}
-    ...
+app.use((ctx, next) => {
+    try{
+        if (ctx.path == '/' && ctx.method == 'GET' && !ctx.SessKey) {throw `请登录...`}
+        ...
+    }catch(e){
+        if(e == '请登录...'){ ctx.redirect('/login')}
+        ...
+    }
 });
-router.get('/login', (ctx, next) => {
-    let UserCode = 'ss',
-        PassWord = 'sss',
-        SessionExpiry = 5*24*60*60*1000; //5 days
-    ....
-    await Session.Create(ctx, SessionExpiry, {UserCode, UserName})
-    ....
+app.use((ctx, next) => {
+    if(ctx.path == '/login' && ctx.method == 'GET'){
+        const UserCode = 'ss',
+            PassWord = 'sss',
+            SessionExpiry = 5*24*60*60*1000; //5 days
+        ....
+        await Session.Create(ctx, SessionExpiry, {UserCode, UserName})
+        ....
+    }
 });
-router.post('/logout', (ctx, next) => {
-    if (!ctx.SessKey) {throw `请登录...`}
-    ....
-    await SessionDestory(ctx);
-    ....
+app.use((ctx, next) => {
+    try{
+        if (ctx.path == '/logout' && ctx.method == 'POST' && !ctx.SessKey) {
+            throw `请登录...`
+        }else{
+            ....
+            await Session.Destroy(ctx);
+            ....
+            throw `请登录...`
+        }
+    }catch(e){
+        if(e == '请登录...'){ ctx.redirect('/login')}
+        ...
+    }
 });
 
-
-
-app.use(router.routers())
 app.listen(80);
 ```

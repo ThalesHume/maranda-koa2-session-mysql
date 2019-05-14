@@ -1,6 +1,6 @@
 {
   "name": "maranda-koa2-session-mysql",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "koa2 session mysql maranda typescript",
   "main": "index.js",
   "scripts": {
@@ -23,6 +23,7 @@
     "@types/koa": "^2.0.48",
     "@types/sequelize": "^4.27.48",
     "@types/uuid-js": "^0.7.2",
+    "mysql2": "^1.6.5",
     "sequelize": "^5.7.4",
     "uuid-js": "^0.7.5"
   }
