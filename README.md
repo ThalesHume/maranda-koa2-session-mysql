@@ -2,8 +2,14 @@
 
 npm i --save maranda-koa2-session-mysql
 
+// for the complete maranda koa server case, with static, session-mysql, koabody, router
+
+// please visit https://github.com/yu87109/maranda-koa-server-example
+
+//this example is used for ts, if you are js user, if can use as almost the same, just delete the type define.
+
 app.ts
-```
+```typescript
 import Session, {Sequelize, Model, ModelAttributes, DataTypes, Op} from 'maranda-koa2-session-mysql';
 import Koa from 'koa';
 
@@ -21,12 +27,12 @@ export {Session, sequelize, Model, ModelAttributes, DataTypes, Op};
 
 app.use(Session.Middware);
 app.use((ctx, next) => {
-    try{
-        if (ctx.path == '/' && ctx.method == 'GET' && !ctx.SessKey) {throw `请登录...`}
-        ...
-    }catch(e){
-        if(e == '请登录...'){ ctx.redirect('/login')}
-        ...
+    if (ctx.path == '/' && ctx.method == 'GET'){
+        if (!ctx.SessKey) {
+            ctx.body = `please login`
+        }else{
+            ...
+        }
     }
 });
 app.use((ctx, next) => {
@@ -50,10 +56,17 @@ app.use((ctx, next) => {
             throw `请登录...`
         }
     }catch(e){
-        if(e == '请登录...'){ ctx.redirect('/login')}
+        if(e == '请登录...'){ 
+            ctx.body = `<script>window.location.href="/"; </script>`
+        }
         ...
     }
 });
 
 app.listen(80);
 ```
+
+
+---
+
+[for more Versions, click see the changelog](./CHANGELOG.md)

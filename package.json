@@ -1,6 +1,6 @@
 {
   "name": "maranda-koa2-session-mysql",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "koa2 session mysql maranda typescript",
   "main": "index.js",
   "scripts": {
