@@ -20,9 +20,11 @@
   "author": "Sunny",
   "license": "ISC",
   "dependencies": {
+    "@types/dottie": "^2.0.3",
     "@types/koa": "^2.0.48",
     "@types/sequelize": "^4.27.48",
     "@types/uuid-js": "^0.7.2",
+    "dottie": "^2.0.1",
     "mysql2": "^1.6.5",
     "sequelize": "^5.7.4",
     "uuid-js": "^0.7.5"

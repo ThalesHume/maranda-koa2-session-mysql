@@ -16,3 +16,5 @@
     redesign apis, export with all sequelize apis, you can use this without install sequelize
 ## V1.0.8
     modify readme
+## V1.0.9
+    modify readme
