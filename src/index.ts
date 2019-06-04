@@ -1,5 +1,6 @@
 import { Sequelize, Model, QueryTypes, DataTypes } from 'sequelize';
 import { ParameterizedContext } from 'koa';
+import dottie from "dottie";
 
 class Session extends Model {
   private sid: string;
@@ -20,8 +21,12 @@ class Session extends Model {
     this.expiry = v - this.CreateAt;
   }
   
-  public get Sdata() : object {
-    return JSON.stringify
+  public get Sdata() : any {
+    return JSON.parse(JSON.stringify(this.data));
+  }
+  
+  public set Sdata(v : any) {
+    this.setDataValue();
   }
   
   
