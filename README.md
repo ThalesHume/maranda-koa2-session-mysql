@@ -23,12 +23,12 @@ const sequelize = new Sequelize('xxx', 'xxx', 'xxx', {
     host: 'localhost',
     port: 3306,
 })
-//you can set the gc_probability(this example 5/100, default 1/100), tableName(custom tablename, default sessions), gc_type('auto' or 'manul', if you set it to 'manul, you may do the session gc work by your self)
-// you mast ensure that there is not table named 'sessions' or your custom tablename in your database_schema
+//you can set the gc_probability(this example 5/100, default 1/100), tableName(custom tablename, default sessions), gc_type('auto' or 'manul', if you set it to 'manul, you may do the session gc work by your self), ... 
+//you mast ensure that there is not table named 'sessions' or your custom tablename in your database_schema
 app.use(SessionMiddware(sequelize,{gc_probability:5}));
 app.use((ctx, next) => {
     if (ctx.path == '/'){
-        if (ctx.Session.isNewRecord) {
+        if (ctx.Session.isNewRecord) { // if true means that there is no session or the session has been expired of the request 
             ctx.body = `please login`
         }else{
             ...
@@ -47,10 +47,10 @@ app.use((ctx, next) => {
         //default session expiry is set 2 minutes after create time
         ctx.Session.ExpiryTo = new Date(Date.now()+expiry);
         //or you can set expiry as :
-        ctx.Session.expiry = Expiry; 
-        // if you do save session data manul, like 'ctx.session.save()', you must set the cookies by your self, like 'ctx.cookie.set(...)', not recommond
+        ctx.Session.expiry = Expiry; //means ctx.Session.ExpiryTo = new Date(ctx.Session.CreateAt.getTime() + Expiry)
+        // if you do save session data manully, like 'ctx.Session.save()', you must set the cookies by your self, like 'ctx.cookie.set(...)'
         await next();
-        //do not set your session data after next, because it will never work
+        //do not set your session data after next, because it will never work only if you do save session data munully, like 'ctx.Session.save()', and then set the cookies by your self
         ....
     }
 });

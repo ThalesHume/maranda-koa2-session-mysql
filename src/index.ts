@@ -1,4 +1,4 @@
-import { Sequelize, Model, QueryTypes, DataTypes, Op } from 'sequelize';
+import { Sequelize, Model, DataTypes, Op } from 'sequelize';
 import { ParameterizedContext } from 'koa';
 
 class Session extends Model {

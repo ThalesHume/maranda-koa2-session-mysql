@@ -2,16 +2,12 @@ import { Sequelize, Model } from 'sequelize';
 import { ParameterizedContext } from 'koa';
 
 declare class Session extends Model {
-  readonly sid: string;
+  readonly SessKey: string;
   readonly CreateAt: Date;
-  expiry: number;
-  data: object
   ExpiryTo: Date;
-  gc():Promise<number>;
-  static readonly sessKey:string;
-  static gc_probability: number;
-  static gc_type: boolean;
-  static GC():Promise<number>
+  SessData: object;
+  expiry: number;
+  GC():Promise<number>;
 }
 export interface SessionCtx { Session: Session }
 export interface initOptions {
