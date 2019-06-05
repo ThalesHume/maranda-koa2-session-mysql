@@ -2,7 +2,8 @@ import { Sequelize, Model, DataTypes, Op } from 'sequelize';
 import { ParameterizedContext } from 'koa';
 
 class Session extends Model {
-  public static gc_probability: number;
+  public static gc_prob_molecular : number;
+  public static gc_prob_denominator : number;
   public static gc_type: 'auto'|'manul';
   public static sessKey: string;
 
@@ -19,7 +20,8 @@ interface SessionCtx { Session: Session }
 interface initOptions {
   tableName?: string,
   gc_type?: 'auto'|'manul',
-  gc_probability?: number,
+  gc_prob_denominator?: number,
+  gc_prob_molecular?: number,
   sync?: boolean,
   force?: boolean,
   sessKey?: string
@@ -28,14 +30,16 @@ function SessionMiddware<T extends SessionCtx>(sequelize: Sequelize, initOptions
   const { 
     tableName = undefined, 
     gc_type = 'auto', 
-    gc_probability = 1,
+    gc_prob_molecular = 1,
+    gc_prob_denominator = 100,
     sync = true,
     force = false,
     sessKey = 'koa2:sess',
   } = initOptions || {};
   Session.sessKey = sessKey;
   Session.gc_type = gc_type;
-  Session.gc_probability = Math.round(gc_probability);
+  Session.gc_prob_molecular = Math.abs(gc_prob_molecular);
+  Session.gc_prob_denominator = Math.abs(gc_prob_denominator);
   Session.init(
     {
       SessKey: { type: DataTypes.CHAR(36), primaryKey: true, defaultValue: DataTypes.UUIDV4 },
@@ -67,7 +71,7 @@ function SessionMiddware<T extends SessionCtx>(sequelize: Sequelize, initOptions
       }
       await ctx.Session.save();
     }
-    if (Session.gc_type == 'auto' && Math.round(Math.random() * 100) <= Session.gc_probability) {
+    if (Session.gc_type == 'auto' && Math.random() * Session.gc_prob_denominator <= Session.gc_prob_molecular) {
       console.log(`[${Date()}]: Auto collect ${await ctx.Session.GC()} session garbage.`)
     }
   }

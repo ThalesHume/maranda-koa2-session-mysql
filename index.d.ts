@@ -13,7 +13,8 @@ export interface SessionCtx { Session: Session }
 export interface initOptions {
   tableName?: string,
   gc_type?: 'auto'|'manul',
-  gc_probability?: number,
+  gc_prob_denominator?: number,
+  gc_prob_molecular?: number,
   sync?: boolean,
   force?: boolean,
   sessKey?: string

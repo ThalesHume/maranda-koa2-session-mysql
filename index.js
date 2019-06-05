@@ -20,10 +20,11 @@ class Session extends sequelize_1.Model {
     GC() { return Session.destroy({ where: { ExpiryTo: { [sequelize_1.Op.lt]: new Date() } }, logging: false }); }
 }
 function SessionMiddware(sequelize, initOptions) {
-    const { tableName = undefined, gc_type = 'auto', gc_probability = 1, sync = true, force = false, sessKey = 'koa2:sess', } = initOptions || {};
+    const { tableName = undefined, gc_type = 'auto', gc_prob_molecular = 1, gc_prob_denominator = 100, sync = true, force = false, sessKey = 'koa2:sess', } = initOptions || {};
     Session.sessKey = sessKey;
     Session.gc_type = gc_type;
-    Session.gc_probability = Math.round(gc_probability);
+    Session.gc_prob_molecular = Math.abs(gc_prob_molecular);
+    Session.gc_prob_denominator = Math.abs(gc_prob_denominator);
     Session.init({
         SessKey: { type: sequelize_1.DataTypes.CHAR(36), primaryKey: true, defaultValue: sequelize_1.DataTypes.UUIDV4 },
         SessData: { type: sequelize_1.DataTypes.JSON, defaultValue: {} },
@@ -54,7 +55,7 @@ function SessionMiddware(sequelize, initOptions) {
             }
             yield ctx.Session.save();
         }
-        if (Session.gc_type == 'auto' && Math.round(Math.random() * 100) <= Session.gc_probability) {
+        if (Session.gc_type == 'auto' && Math.random() * Session.gc_prob_denominator <= Session.gc_prob_molecular) {
             console.log(`[${Date()}]: Auto collect ${yield ctx.Session.GC()} session garbage.`);
         }
     });
