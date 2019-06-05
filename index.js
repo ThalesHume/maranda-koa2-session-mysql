@@ -13,31 +13,22 @@ function __export(m) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const sequelize_1 = require("sequelize");
 class Session extends sequelize_1.Model {
-    gc() { return Session.GC(); }
-    ;
-    static GC() {
-        const schema = Session.getTableName();
-        let tableName;
-        if (typeof schema == 'string') {
-            tableName = `\`${schema}\``;
-        }
-        else {
-            tableName = `\`${schema.schema}\`${schema.delimiter}\`${schema.tableName}\``;
-        }
-        const sql = `DELETE FROM ${tableName} WHERE \`create_at\` < unix_timestamp(now())*1000 - \`expiry\``;
-        return (Session.sequelize).query(sql, { type: sequelize_1.QueryTypes.BULKDELETE, logging: false });
-    }
+    get SessData() { return JSON.parse(JSON.stringify(this.getDataValue('SessData') || {})); }
+    set SessData(value) { this.setDataValue('SessData', value); }
+    get expiry() { return this.ExpiryTo.getTime() - this.CreateAt.getTime(); }
+    set expiry(value) { this.ExpiryTo = new Date(this.CreateAt.getTime() + value); }
+    GC() { return Session.destroy({ where: { ExpiryTo: { [sequelize_1.Op.lt]: new Date() } }, logging: false }); }
 }
-Session.sessKey = 'koa2:sess';
 function SessionMiddware(sequelize, initOptions) {
-    const { tableName = undefined, gc_type = true, gc_probability = 1, sync = true, force = false } = initOptions || {};
+    const { tableName = undefined, gc_type = 'auto', gc_probability = 20, sync = true, force = false, sessKey = 'koa2:sess', } = initOptions || {};
+    Session.sessKey = sessKey;
     Session.gc_type = gc_type;
     Session.gc_probability = Math.round(gc_probability);
     Session.init({
-        sid: { type: sequelize_1.CHAR(36), primaryKey: true, defaultValue: sequelize_1.UUIDV4 },
-        data: { type: sequelize_1.JSON, defaultValue: {} },
-        expiry: { type: sequelize_1.INTEGER, defaultValue: 2 * 60 * 1000 },
-        CreateAt: { type: sequelize_1.DATE, defaultValue: sequelize_1.NOW }
+        SessKey: { type: sequelize_1.DataTypes.CHAR(36), primaryKey: true, defaultValue: sequelize_1.DataTypes.UUIDV4 },
+        SessData: { type: sequelize_1.DataTypes.JSON, defaultValue: {} },
+        ExpiryTo: { type: sequelize_1.DataTypes.DATE, defaultValue: () => new Date(Date.now() + 2 * 60 * 1000) },
+        CreateAt: { type: sequelize_1.DataTypes.DATE, defaultValue: sequelize_1.DataTypes.NOW }
     }, {
         sequelize,
         tableName,
@@ -48,23 +39,23 @@ function SessionMiddware(sequelize, initOptions) {
     if (sync)
         Session.sync({ force, logging: false }).catch(e => console.log(e));
     return (ctx, next) => __awaiter(this, void 0, void 0, function* () {
-        const sid = ctx.cookies.get(Session.sessKey);
-        if (sid) {
-            const session = yield Session.findOne({ where: { sid }, logging: false });
-            ctx.Session = session && (Date.now() - session.CreateAt < session.expiry) ? session : Session.build();
+        const SessKey = ctx.cookies.get(Session.sessKey);
+        if (SessKey) {
+            const session = yield Session.findOne({ where: { SessKey }, logging: false });
+            ctx.Session = session && session.ExpiryTo.getTime() > Date.now() ? session : Session.build();
         }
         else {
             ctx.Session = Session.build();
         }
         yield next();
         if (ctx.Session.changed()) {
-            if (ctx.Session.isNewRecord) {
-                ctx.cookies.set(Session.sessKey, ctx.Session.sid, { path: '/', overwrite: true, maxAge: ctx.Session.expiry });
+            if (ctx.Session.isNewRecord || ctx.Session.changed('ExpiryTo') || ctx.Session.changed('SessKey')) {
+                ctx.cookies.set(Session.sessKey, ctx.Session.SessKey, { path: '/', overwrite: true, expires: ctx.Session.ExpiryTo });
             }
             yield ctx.Session.save();
         }
-        if (Session.gc_type && Math.round(Math.random() * 100) <= Session.gc_probability) {
-            console.log(`[${Date()}]: collect ${yield Session.GC()} session garbage.`);
+        if (Session.gc_type == 'auto' && Math.round(Math.random() * 100) <= Session.gc_probability) {
+            console.log(`[${Date()}]: Auto collect ${yield ctx.Session.GC()} session garbage.`);
         }
     });
 }
