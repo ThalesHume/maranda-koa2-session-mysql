@@ -14,22 +14,21 @@ import SessionMiddware, { Sequelize, SessionCtx } from 'maranda-koa2-session-mys
 
 import Koa from 'koa';
 
-//if have other context
-const app = new Koa<any, others & Session.Ctx>();
-//you can set the gc_probability(this example 5/100, default 1/100), tableName(custom tablename,default sessions), gc_type(Session Garbage Collection type, default true, mean the session gc work will do auto, if you set it false, you may do the session gc work by your self)
-// you mast ensure that there is not table named 'sessions' or your custom tablename in your database_schema
+interface ctx extends SessionCtx{
+    //if have other context
+}
+const app = new Koa<any, ctx>();
 const sequelize = new Sequelize('xxx', 'xxx', 'xxx', {
     dialect: 'mysql',
     host: 'localhost',
     port: 3306,
 })
-Session.Init(sequelize, {gc_probability:5});
-export {Session, sequelize, Model, ModelAttributes, DataTypes, Op};
-
-app.use(Session.Middware);
+//you can set the gc_probability(this example 5/100, default 1/100), tableName(custom tablename, default sessions), gc_type('auto' or 'manul', if you set it to 'manul, you may do the session gc work by your self)
+// you mast ensure that there is not table named 'sessions' or your custom tablename in your database_schema
+app.use(SessionMiddware(sequelize,{gc_probability:5}));
 app.use((ctx, next) => {
-    if (ctx.path == '/' && ctx.method == 'GET'){
-        if (!ctx.SessKey) {
+    if (ctx.path == '/'){
+        if (ctx.Session.isNewRecord) {
             ctx.body = `please login`
         }else{
             ...
@@ -37,30 +36,27 @@ app.use((ctx, next) => {
     }
 });
 app.use((ctx, next) => {
-    if(ctx.path == '/login' && ctx.method == 'GET'){
+    if(ctx.path == '/login'){
         const UserCode = 'ss',
             PassWord = 'sss',
-            SessionExpiry = 5*24*60*60*1000; //5 days
+            Expiry = 5*24*60*60*1000; //5 days
         ....
-        await Session.Create(ctx, SessionExpiry, {UserCode, UserName})
+        ctx.Session.SessData = {
+            UserCode
+        }
+        //default session expiry is set 2 minutes after create time
+        ctx.Session.ExpiryTo = new Date(Date.now()+expiry);
+        //or you can set expiry as :
+        ctx.Session.expiry = Expiry; 
+        // if you do save session data manul, like 'ctx.session.save()', you must set the cookies by your self, like 'ctx.cookie.set(...)', not recommond
+        await next();
+        //do not set your session data after next, because it will never work
         ....
     }
 });
 app.use((ctx, next) => {
-    try{
-        if (ctx.path == '/logout' && ctx.method == 'POST' && !ctx.SessKey) {
-            throw `请登录...`
-        }else{
-            ....
-            await Session.Destroy(ctx);
-            ....
-            throw `请登录...`
-        }
-    }catch(e){
-        if(e == '请登录...'){ 
-            ctx.body = `<script>window.location.href="/"; </script>`
-        }
-        ...
+    if (ctx.path == '/logout' && !ctx.Session.isNewRecord) {
+        await ctx.Session.destroy();
     }
 });
 
