@@ -10,7 +10,8 @@
 
 app.ts
 ```typescript
-import Session, {Sequelize, Model, ModelAttributes, DataTypes, Op} from 'maranda-koa2-session-mysql';
+import SessionMiddware, { Sequelize, SessionCtx } from 'maranda-koa2-session-mysql'
+
 import Koa from 'koa';
 
 //if have other context

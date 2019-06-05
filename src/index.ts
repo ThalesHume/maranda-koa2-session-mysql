@@ -28,7 +28,7 @@ function SessionMiddware<T extends SessionCtx>(sequelize: Sequelize, initOptions
   const { 
     tableName = undefined, 
     gc_type = 'auto', 
-    gc_probability = 20,
+    gc_probability = 1,
     sync = true,
     force = false,
     sessKey = 'koa2:sess',

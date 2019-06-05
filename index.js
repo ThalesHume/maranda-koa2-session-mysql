@@ -20,7 +20,7 @@ class Session extends sequelize_1.Model {
     GC() { return Session.destroy({ where: { ExpiryTo: { [sequelize_1.Op.lt]: new Date() } }, logging: false }); }
 }
 function SessionMiddware(sequelize, initOptions) {
-    const { tableName = undefined, gc_type = 'auto', gc_probability = 20, sync = true, force = false, sessKey = 'koa2:sess', } = initOptions || {};
+    const { tableName = undefined, gc_type = 'auto', gc_probability = 1, sync = true, force = false, sessKey = 'koa2:sess', } = initOptions || {};
     Session.sessKey = sessKey;
     Session.gc_type = gc_type;
     Session.gc_probability = Math.round(gc_probability);

@@ -18,3 +18,5 @@
     modify readme
 ## V1.0.9
     modify readme
+## V2.0.0
+    redesign all apis;
