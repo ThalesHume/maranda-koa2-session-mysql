@@ -23,9 +23,9 @@ const sequelize = new Sequelize('xxx', 'xxx', 'xxx', {
     host: 'localhost',
     port: 3306,
 })
-//you can set the gc_probability(this example 5/100, default 1/100), tableName(custom tablename, default sessions), gc_type('auto' or 'manul', if you set it to 'manul, you may do the session gc work by your self), ... 
+//you can set the gc_probability whith molecula and denominato(this example 5/100, default 1/100), tableName(custom tablename, default sessions), gc_type('auto' or 'manul', if you set it to 'manul, you may do the session gc work by your self), ... 
 //you mast ensure that there is not table named 'sessions' or your custom tablename in your database_schema
-app.use(SessionMiddware(sequelize,{gc_probability:5}));
+app.use(SessionMiddware(sequelize,{gc_prob_molecular:5, gc_prob_denominator:100}));
 app.use((ctx, next) => {
     if (ctx.path == '/'){
         if (ctx.Session.isNewRecord) { // if true means that there is no session or the session has been expired of the request 
