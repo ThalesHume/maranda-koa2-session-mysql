@@ -17,7 +17,7 @@ class Session extends sequelize_1.Model {
     set SessData(value) { this.setDataValue('SessData', value); }
     get expiry() { return this.ExpiryTo.getTime() - this.CreateAt.getTime(); }
     set expiry(value) { this.ExpiryTo = new Date(this.CreateAt.getTime() + value); }
-    GC() { return Session.destroy({ where: { ExpiryTo: { [sequelize_1.Op.lt]: new Date() } }, logging: false }); }
+    GC() { return Session.destroy({ where: { ExpiryTo: { [sequelize_1.Op.lt]: new Date() } } }); }
 }
 function SessionMiddware(sequelize, initOptions) {
     const { tableName = undefined, gc_type = 'auto', gc_prob_molecular = 1, gc_prob_denominator = 100, sync = true, force = false, sessKey = 'koa2:sess', } = initOptions || {};
@@ -38,11 +38,11 @@ function SessionMiddware(sequelize, initOptions) {
         paranoid: false,
     });
     if (sync)
-        Session.sync({ force, logging: false }).catch(e => console.log(e));
+        Session.sync({ force }).catch(e => console.log(e));
     return (ctx, next) => __awaiter(this, void 0, void 0, function* () {
         const SessKey = ctx.cookies.get(Session.sessKey);
         if (SessKey) {
-            const session = yield Session.findOne({ where: { SessKey }, logging: false });
+            const session = yield Session.findOne({ where: { SessKey } });
             ctx.Session = session && session.ExpiryTo.getTime() > Date.now() ? session : Session.build();
         }
         else {
