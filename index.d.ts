@@ -17,7 +17,8 @@ export interface initOptions {
   gc_prob_molecular?: number,
   sync?: boolean,
   force?: boolean,
-  sessKey?: string
+  sessKey?: string,
+  logger?: boolean | ((num:number)=>any)
 }
 declare function SessionMiddware<T extends SessionCtx>(sequelize: Sequelize, initOptions?: initOptions): (ctx: ParameterizedContext<any, T>, next: () => Promise<any>) => Promise<void>
 export default SessionMiddware;

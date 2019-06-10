@@ -24,7 +24,8 @@ interface initOptions {
   gc_prob_molecular?: number,
   sync?: boolean,
   force?: boolean,
-  sessKey?: string
+  sessKey?: string,
+  logger?: boolean | ((num: number) => any)
 }
 function SessionMiddware<T extends SessionCtx>(sequelize: Sequelize, initOptions?: initOptions) {
   const {
@@ -35,6 +36,7 @@ function SessionMiddware<T extends SessionCtx>(sequelize: Sequelize, initOptions
     sync = true,
     force = false,
     sessKey = 'koa2:sess',
+    logger = true,
   } = initOptions || {};
   Session.sessKey = sessKey;
   Session.gc_type = gc_type;
@@ -44,7 +46,7 @@ function SessionMiddware<T extends SessionCtx>(sequelize: Sequelize, initOptions
     {
       SessKey: { type: DataTypes.CHAR(36), primaryKey: true, defaultValue: DataTypes.UUIDV4 },
       SessData: { type: DataTypes.JSON, defaultValue: {} },
-      ExpiryTo: { type: DataTypes.DATE, defaultValue: () => new Date(Date.now() + 2 * 60 * 1000) },
+      ExpiryTo: { type: DataTypes.DATE, defaultValue: () => new Date(Date.now() + 24 * 60 * 60 * 1000) },
       CreateAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
     },
     {
@@ -66,13 +68,18 @@ function SessionMiddware<T extends SessionCtx>(sequelize: Sequelize, initOptions
     }
     await next();
     if (ctx.Session.changed()) {
-      if (ctx.Session.isNewRecord || ctx.Session.changed('ExpiryTo') || ctx.Session.changed('SessKey')) {
-        ctx.cookies.set(Session.sessKey, ctx.Session.SessKey, { path: '/', overwrite: true, expires: ctx.Session.ExpiryTo })
+      if (ctx.Session.isNewRecord || ctx.Session.changed('ExpiryTo')) {
+        if (ctx.Session.changed('ExpiryTo')) {
+          ctx.cookies.set(Session.sessKey, ctx.Session.SessKey, { path: '/', overwrite: true, expires: ctx.Session.ExpiryTo })
+        } else {
+          ctx.cookies.set(Session.sessKey, ctx.Session.SessKey, { path: '/', overwrite: true });
+        }
       }
       await ctx.Session.save();
     }
     if (Session.gc_type == 'auto' && Math.random() * Session.gc_prob_denominator <= Session.gc_prob_molecular) {
-      console.log(`[${Date()}]: Auto collect ${await ctx.Session.GC()} session garbage.`)
+      if (logger == true) console.log(`[${Date()}]: Auto collect ${await ctx.Session.GC()} session garbage.`)
+      if (typeof logger == 'function') logger(await ctx.Session.GC());
     }
   }
 }
