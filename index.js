@@ -20,7 +20,7 @@ class Session extends sequelize_1.Model {
     GC() { return Session.destroy({ where: { ExpiryTo: { [sequelize_1.Op.lt]: new Date() } } }); }
 }
 function SessionMiddware(sequelize, initOptions) {
-    const { tableName = undefined, gc_type = 'auto', gc_prob_molecular = 1, gc_prob_denominator = 100, sync = true, force = false, sessKey = 'koa2:sess', } = initOptions || {};
+    const { tableName = undefined, gc_type = 'auto', gc_prob_molecular = 1, gc_prob_denominator = 100, sync = true, force = false, sessKey = 'koa2:sess', logger = true, } = initOptions || {};
     Session.sessKey = sessKey;
     Session.gc_type = gc_type;
     Session.gc_prob_molecular = Math.abs(gc_prob_molecular);
@@ -28,7 +28,7 @@ function SessionMiddware(sequelize, initOptions) {
     Session.init({
         SessKey: { type: sequelize_1.DataTypes.CHAR(36), primaryKey: true, defaultValue: sequelize_1.DataTypes.UUIDV4 },
         SessData: { type: sequelize_1.DataTypes.JSON, defaultValue: {} },
-        ExpiryTo: { type: sequelize_1.DataTypes.DATE, defaultValue: () => new Date(Date.now() + 2 * 60 * 1000) },
+        ExpiryTo: { type: sequelize_1.DataTypes.DATE, defaultValue: () => new Date(Date.now() + 24 * 60 * 60 * 1000) },
         CreateAt: { type: sequelize_1.DataTypes.DATE, defaultValue: sequelize_1.DataTypes.NOW }
     }, {
         sequelize,
@@ -50,13 +50,21 @@ function SessionMiddware(sequelize, initOptions) {
         }
         yield next();
         if (ctx.Session.changed()) {
-            if (ctx.Session.isNewRecord || ctx.Session.changed('ExpiryTo') || ctx.Session.changed('SessKey')) {
-                ctx.cookies.set(Session.sessKey, ctx.Session.SessKey, { path: '/', overwrite: true, expires: ctx.Session.ExpiryTo });
+            if (ctx.Session.isNewRecord || ctx.Session.changed('ExpiryTo')) {
+                if (ctx.Session.changed('ExpiryTo')) {
+                    ctx.cookies.set(Session.sessKey, ctx.Session.SessKey, { path: '/', overwrite: true, expires: ctx.Session.ExpiryTo });
+                }
+                else {
+                    ctx.cookies.set(Session.sessKey, ctx.Session.SessKey, { path: '/', overwrite: true });
+                }
             }
             yield ctx.Session.save();
         }
         if (Session.gc_type == 'auto' && Math.random() * Session.gc_prob_denominator <= Session.gc_prob_molecular) {
-            console.log(`[${Date()}]: Auto collect ${yield ctx.Session.GC()} session garbage.`);
+            if (logger == true)
+                console.log(`[${Date()}]: Auto collect ${yield ctx.Session.GC()} session garbage.`);
+            if (typeof logger == 'function')
+                logger(yield ctx.Session.GC());
         }
     });
 }
