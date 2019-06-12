@@ -19,7 +19,7 @@ class Session extends sequelize_1.Model {
     set expiry(value) { this.expiryTo = new Date(this.createAt.getTime() + value); }
     gc() { return Session.destroy({ where: { expiryTo: { [sequelize_1.Op.lt]: new Date() } } }); }
 }
-function sessionMiddware(sequelize, initOptions) {
+function SessionMiddware(sequelize, initOptions) {
     const { tableName = undefined, gcType = 'auto', gcProbMolecular = 1, gcProbDenominator = 100, sync = true, force = false, sessKey = 'koa2:sess', logger = true, } = initOptions || {};
     Session.sessKey = sessKey;
     Session.gcType = gcType;
@@ -68,5 +68,5 @@ function sessionMiddware(sequelize, initOptions) {
         }
     });
 }
-exports.default = sessionMiddware;
+exports.default = SessionMiddware;
 __export(require("sequelize"));

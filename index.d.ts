@@ -10,7 +10,7 @@ declare class Session extends Model {
   gc():Promise<number>;
 }
 export interface SessionCtx { session: Session }
-export interface initOptions {
+export interface InitOptions {
   tableName?: string,
   gcType?: 'auto' | 'manul',
   gcProbDenominator?: number,
@@ -20,6 +20,6 @@ export interface initOptions {
   sessKey?: string,
   logger?: boolean | ((num: number) => any)
 }
-declare function sessionMiddware<T extends SessionCtx>(sequelize: Sequelize, initOptions?: initOptions): (ctx: ParameterizedContext<any, T>, next: () => Promise<any>) => Promise<void>
-export default sessionMiddware;
+declare function SessionMiddware<T extends SessionCtx>(sequelize: Sequelize, initOptions?: InitOptions): (ctx: ParameterizedContext<any, T>, next: () => Promise<any>) => Promise<void>
+export default SessionMiddware;
 export * from 'sequelize';
