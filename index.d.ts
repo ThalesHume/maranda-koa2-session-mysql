@@ -2,24 +2,24 @@ import { Sequelize, Model } from 'sequelize';
 import { ParameterizedContext } from 'koa';
 
 declare class Session extends Model {
-  readonly SessKey: string;
-  readonly CreateAt: Date;
-  ExpiryTo: Date;
-  SessData: object;
+  readonly id: string;
+  readonly createAt: Date;
+  expiryTo: Date;
+  data: object;
   expiry: number;
-  GC():Promise<number>;
+  gc():Promise<number>;
 }
-export interface SessionCtx { Session: Session }
+export interface SessionCtx { session: Session }
 export interface initOptions {
   tableName?: string,
-  gc_type?: 'auto'|'manul',
-  gc_prob_denominator?: number,
-  gc_prob_molecular?: number,
+  gcType?: 'auto' | 'manul',
+  gcProbDenominator?: number,
+  gcProbMolecular?: number,
   sync?: boolean,
   force?: boolean,
   sessKey?: string,
-  logger?: boolean | ((num:number)=>any)
+  logger?: boolean | ((num: number) => any)
 }
-declare function SessionMiddware<T extends SessionCtx>(sequelize: Sequelize, initOptions?: initOptions): (ctx: ParameterizedContext<any, T>, next: () => Promise<any>) => Promise<void>
-export default SessionMiddware;
+declare function sessionMiddware<T extends SessionCtx>(sequelize: Sequelize, initOptions?: initOptions): (ctx: ParameterizedContext<any, T>, next: () => Promise<any>) => Promise<void>
+export default sessionMiddware;
 export * from 'sequelize';

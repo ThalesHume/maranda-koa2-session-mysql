@@ -25,3 +25,5 @@
 ## v2.1.2
     1. add api logger, in the initOptions you can set logger by true/false/function, default is true. Set false means not show GC infomation, Set function you can control the log by your own way like white into a file.
     2. modify the set cookie logic, if in the middleware you do not set the expiry or the ExpiryTo, system will auto set cookie whithout expiries, that means when you close the windows, the cookies destroy   
+## v3.0.0
+    change the apis to lowerCamelCase;

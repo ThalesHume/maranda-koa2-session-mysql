@@ -2,52 +2,52 @@ import { Sequelize, Model, DataTypes, Op } from 'sequelize';
 import { ParameterizedContext } from 'koa';
 
 class Session extends Model {
-  public static gc_prob_molecular: number;
-  public static gc_prob_denominator: number;
-  public static gc_type: 'auto' | 'manul';
+  public static gcProbMolecular: number;
+  public static gcProbDenominator: number;
+  public static gcType: 'auto' | 'manul';
   public static sessKey: string;
 
-  readonly SessKey: string;
-  readonly CreateAt: Date;
-  ExpiryTo: Date;
-  get SessData(): object { return JSON.parse(JSON.stringify(this.getDataValue('SessData') || {})); }
-  set SessData(value: object) { this.setDataValue('SessData', value); }
-  get expiry(): number { return this.ExpiryTo.getTime() - this.CreateAt.getTime(); }
-  set expiry(value: number) { this.ExpiryTo = new Date(this.CreateAt.getTime() + value); }
-  GC() { return Session.destroy({ where: { ExpiryTo: { [Op.lt]: new Date() } } }); }
+  readonly id: string;
+  readonly createAt: Date;
+  expiryTo: Date;
+  get data(): object { return JSON.parse(JSON.stringify(this.getDataValue('data') || {})); }
+  set data(value: object) { this.setDataValue('data', value); }
+  get expiry(): number { return this.expiryTo.getTime() - this.createAt.getTime(); }
+  set expiry(value: number) { this.expiryTo = new Date(this.createAt.getTime() + value); }
+  gc() { return Session.destroy({ where: { expiryTo: { [Op.lt]: new Date() } } }); }
 }
-interface SessionCtx { Session: Session }
+interface SessionCtx { session: Session }
 interface initOptions {
   tableName?: string,
-  gc_type?: 'auto' | 'manul',
-  gc_prob_denominator?: number,
-  gc_prob_molecular?: number,
+  gcType?: 'auto' | 'manul',
+  gcProbDenominator?: number,
+  gcProbMolecular?: number,
   sync?: boolean,
   force?: boolean,
   sessKey?: string,
   logger?: boolean | ((num: number) => any)
 }
-function SessionMiddware<T extends SessionCtx>(sequelize: Sequelize, initOptions?: initOptions) {
+function sessionMiddware<T extends SessionCtx>(sequelize: Sequelize, initOptions?: initOptions) {
   const {
     tableName = undefined,
-    gc_type = 'auto',
-    gc_prob_molecular = 1,
-    gc_prob_denominator = 100,
+    gcType = 'auto',
+    gcProbMolecular = 1,
+    gcProbDenominator = 100,
     sync = true,
     force = false,
     sessKey = 'koa2:sess',
     logger = true,
   } = initOptions || {};
   Session.sessKey = sessKey;
-  Session.gc_type = gc_type;
-  Session.gc_prob_molecular = Math.abs(gc_prob_molecular);
-  Session.gc_prob_denominator = Math.abs(gc_prob_denominator);
+  Session.gcType = gcType;
+  Session.gcProbMolecular = Math.abs(gcProbMolecular);
+  Session.gcProbDenominator = Math.abs(gcProbDenominator);
   Session.init(
     {
-      SessKey: { type: DataTypes.CHAR(36), primaryKey: true, defaultValue: DataTypes.UUIDV4 },
-      SessData: { type: DataTypes.JSON, defaultValue: {} },
-      ExpiryTo: { type: DataTypes.DATE, defaultValue: () => new Date(Date.now() + 24 * 60 * 60 * 1000) },
-      CreateAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
+      id: { type: DataTypes.CHAR(36), primaryKey: true, defaultValue: DataTypes.UUIDV4 },
+      data: { type: DataTypes.JSON, defaultValue: {} },
+      expiryTo: { type: DataTypes.DATE, defaultValue: () => new Date(Date.now() + 24 * 60 * 60 * 1000) },
+      createAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
     },
     {
       sequelize,
@@ -59,29 +59,29 @@ function SessionMiddware<T extends SessionCtx>(sequelize: Sequelize, initOptions
   )
   if (sync) Session.sync({ force }).catch(e => console.log(e));
   return async (ctx: ParameterizedContext<any, T>, next: () => Promise<any>) => {
-    const SessKey = ctx.cookies.get(Session.sessKey);
-    if (SessKey) {
-      const session = await Session.findOne({ where: { SessKey } });
-      ctx.Session = session && session.ExpiryTo.getTime() > Date.now() ? session : Session.build();
+    const sessKey = ctx.cookies.get(Session.sessKey);
+    if (sessKey) {
+      const session = await Session.findOne({ where: { id:sessKey } });
+      ctx.session = session && session.expiryTo.getTime() > Date.now() ? session : Session.build();
     } else {
-      ctx.Session = Session.build();
+      ctx.session = Session.build();
     }
     await next();
-    if (ctx.Session.changed()) {
-      if (ctx.Session.isNewRecord || ctx.Session.changed('ExpiryTo')) {
-        if (ctx.Session.changed('ExpiryTo')) {
-          ctx.cookies.set(Session.sessKey, ctx.Session.SessKey, { path: '/', overwrite: true, expires: ctx.Session.ExpiryTo })
+    if (ctx.session.changed()) {
+      if (ctx.session.isNewRecord || ctx.session.changed('expiryTo')) {
+        if (ctx.session.changed('expiryTo')) {
+          ctx.cookies.set(Session.sessKey, ctx.session.id, { path: '/', overwrite: true, expires: ctx.session.expiryTo })
         } else {
-          ctx.cookies.set(Session.sessKey, ctx.Session.SessKey, { path: '/', overwrite: true });
+          ctx.cookies.set(Session.sessKey, ctx.session.id, { path: '/', overwrite: true });
         }
       }
-      await ctx.Session.save();
+      await ctx.session.save();
     }
-    if (Session.gc_type == 'auto' && Math.random() * Session.gc_prob_denominator <= Session.gc_prob_molecular) {
-      if (logger == true) console.log(`[${Date()}]: Auto collect ${await ctx.Session.GC()} session garbage.`)
-      if (typeof logger == 'function') logger(await ctx.Session.GC());
+    if (Session.gcType == 'auto' && Math.random() * Session.gcProbDenominator <= Session.gcProbMolecular) {
+      if (logger == true) console.log(`[${Date()}]: Auto collect ${await ctx.session.gc()} session garbage.`)
+      if (typeof logger == 'function') logger(await ctx.session.gc());
     }
   }
 }
-export default SessionMiddware;
+export default sessionMiddware;
 export * from 'sequelize';
