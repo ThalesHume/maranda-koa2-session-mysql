@@ -31,3 +31,5 @@
     1. class, namesapce, interface or type defined, function use lowerCamelCase;
     2. variable, attribute, property use UpperCamelCase, if protected start with _, if private start with __;
     3. constant use capital letter and underline 
+## v3.0.2
+    change the name of InitOptions to SessionInitOptions;

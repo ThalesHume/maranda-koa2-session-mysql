@@ -17,7 +17,7 @@ class Session extends Model {
   gc() { return Session.destroy({ where: { expiryTo: { [Op.lt]: new Date() } } }); }
 }
 interface SessionCtx { session: Session }
-interface InitOptions {
+interface SessionInitOptions {
   tableName?: string,
   gcType?: 'auto' | 'manul',
   gcProbDenominator?: number,
@@ -27,7 +27,7 @@ interface InitOptions {
   sessKey?: string,
   logger?: boolean | ((num: number) => any)
 }
-function SessionMiddware<T extends SessionCtx>(sequelize: Sequelize, initOptions?: InitOptions) {
+function SessionMiddware<T extends SessionCtx>(sequelize: Sequelize, initOptions?: SessionInitOptions) {
   const {
     tableName = undefined,
     gcType = 'auto',
