@@ -10,11 +10,18 @@
 
 app.ts
 ```typescript
-import sessionMiddware, { Sequelize, SessionCtx } from 'maranda-koa2-session-mysql'
+import Session, { Sequelize } from 'maranda-koa2-session-mysql'
 
 import Koa from 'koa';
 
-interface Ctx extends SessionCtx{
+interface sessionData extends Session.DataType{
+    name:string,
+    id: number,
+    stauts:boolean,
+    friend: sessionData,
+    group: [number,string,sessionData]
+}
+export interface Ctx extends Session.Ctx<sessionData> { 
     //if have other context
 }
 const app = new Koa<any, Ctx>();
@@ -23,9 +30,15 @@ const sequelize = new Sequelize('xxx', 'xxx', 'xxx', {
     host: 'localhost',
     port: 3306,
 })
-//you can set the gc probability whith molecula and denominato(this example 5/100, default 1/100), tableName(custom tablename, default sessions), gcType('auto' or 'manul', if you set it to 'manul, you may do the session gc work by your self), ... 
+//you can set the gc probability whith molecula and denominato(this example 5/1000, default 1/100), tableName(custom tablename, default sessions), gcType('auto' or 'manul', if you set it to 'manul, you may do the session gc work by your self), ... 
 //you mast ensure that there is not table named 'sessions' or your custom tablename in your database_schema
-app.use(sessionMiddware(sequelize,{gcProbMolecular:5, gcProbMenominator:100}));
+app.use(Session.middware(
+    sequelize,
+    {
+        gcOpts: { probDenominator: 1, probMolecular: 100, type: 'auto' },
+        defaultExpiry: 24 * 60 * 60 * 1000 //if the client close without set the session expiry, the some client will not create session again in 1 day, 
+    }
+));
 app.use((ctx, next) => {
     if (ctx.path == '/'){
         if (ctx.session.isNewRecord) { // if true means that there is no session or the session has been expired of the request 
@@ -41,10 +54,8 @@ app.use((ctx, next) => {
             passWord = 'sss',
             expiry = 5*24*60*60*1000; //5 days
         ....
-        ctx.session.data = {
-            userCode
-        }
-        //default session expiry is set 2 minutes after create time
+        ctx.session.data.friend.id = 'xxx';
+        ctx.session.data.id = code;
         ctx.session.expiryTo = new Date(Date.now()+expiry);
         //or you can set expiry as :
         ctx.session.expiry = expiry; //means ctx.session.expiryTo = new Date(ctx.session.createAt.getTime() + expiry)

@@ -33,3 +33,7 @@
     3. constant use capital letter and underline 
 ## v3.0.2
     change the name of InitOptions to SessionInitOptions;
+## v3.1.2
+    1. re-organization  the api for easier use;
+    2. add the generic type for the session data;
+    3. set the proxy of the sessionData, for changes; 
