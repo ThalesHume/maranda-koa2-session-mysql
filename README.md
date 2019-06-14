@@ -14,14 +14,14 @@ import Session, { Sequelize } from 'maranda-koa2-session-mysql'
 
 import Koa from 'koa';
 
-interface sessionData extends Session.DataType{
+interface SessionData extends Session.DataType{
     name:string,
     id: number,
     stauts:boolean,
     friend: sessionData,
     group: [number,string,sessionData]
 }
-export interface Ctx extends Session.Ctx<sessionData> { 
+export interface Ctx extends Session.Ctx<SessionData> { 
     //if have other context
 }
 const app = new Koa<any, Ctx>();
