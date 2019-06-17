@@ -37,3 +37,5 @@
     1. re-organization  the api for easier use;
     2. add the generic type for the session data;
     3. set the proxy of the sessionData, for changes; 
+## v3.1.4 
+    add undefined into the DataTypes

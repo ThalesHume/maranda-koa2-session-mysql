@@ -42,8 +42,8 @@ namespace Session {
     defaultExpiry?: number
   }
   export interface DataType {
-    [key: string]: number | string | boolean | DataType | Array<number | string | boolean | DataType>
-    [index: number]: number | string | boolean | DataType | Array<number | string | boolean | DataType>
+    [key: string]: number | string | boolean | DataType | Array<number | string | boolean | DataType> | undefined
+    [index: number]: number | string | boolean | DataType | Array<number | string | boolean | DataType> | undefined
   }
   export function middware<T extends Ctx<DataType>>(sequelize: Sequelize, initOptions?: InitOptions) {
     const {
