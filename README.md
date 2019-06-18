@@ -35,7 +35,7 @@ const sequelize = new Sequelize('xxx', 'xxx', 'xxx', {
 app.use(Session.middware(
     sequelize,
     {
-        gcOpts: { probDenominator: 1, probMolecular: 100, type: 'auto' },
+        gcOpts: { probDenominator: 100, probMolecular: 1, type: 'auto' },
         defaultExpiry: 24 * 60 * 60 * 1000 //if the client close without set the session expiry, the some client will not create session again in 1 day, 
     }
 ));

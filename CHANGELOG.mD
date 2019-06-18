@@ -39,3 +39,5 @@
     3. set the proxy of the sessionData, for changes; 
 ## v3.1.4 
     add undefined into the DataTypes
+## v3.1.5
+    change the error in reademe
