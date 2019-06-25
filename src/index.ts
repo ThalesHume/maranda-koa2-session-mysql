@@ -4,26 +4,25 @@ import { ParameterizedContext } from 'koa';
 class Session<T extends Session.DataType> extends Model {
   readonly id: string;
   readonly createAt: Date;
+  data: T;
   expiryTo: Date;
-  get data(): T { return this.__proxyData(this.getDataValue('data')); }
-  set data(value: T) { this.setDataValue('data', value); }
   get expiry(): number { return this.expiryTo.getTime() - this.createAt.getTime(); }
   set expiry(value: number) { this.expiryTo = new Date(this.createAt.getTime() + value); }
   async gc() { return await Session.destroy({ where: { expiryTo: { [Op.lt]: new Date() } } }); }
 
-  private __proxyData<T extends Session.DataType>(target: T): T {
+}
+namespace Session {
+  function proxyData<T extends DataType>(session: Session<T>, target: T): T {
     return new Proxy(target, {
       set: (target, key, value) => {
-        this.changed('data', true);
+        session.changed('data', true);
         return Reflect.set(target, key, value);
       },
       get: (target, key: string | number) => {
-        return typeof target[key] !== 'object' ? target[key] : this.__proxyData(<T>target[key]);
+        return typeof target[key] !== 'object' ? target[key] : proxyData(session, <T>target[key]);
       }
     })
   }
-}
-namespace Session {
   interface Ctx<T extends DataType> { session: Session<T> }
   interface InitOptions {
     tableName?: string,
@@ -56,7 +55,12 @@ namespace Session {
     Session.init(
       {
         id: { type: DataTypes.CHAR(36), primaryKey: true, defaultValue: DataTypes.UUIDV4 },
-        data: { type: DataTypes.JSON, defaultValue: {} },
+        data: {
+          type: DataTypes.JSON,
+          defaultValue: {},
+          get<T extends DataType>(this: Session<T>) { return proxyData<T>(this, this.getDataValue('data')) },
+          set<T extends DataType>(this: Session<T>, value: T) { this.setDataValue('data', value); }
+        },
         expiryTo: { type: DataTypes.DATE, defaultValue: () => new Date(Date.now() + defaultExpiry) },
         createAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
       },
@@ -73,9 +77,9 @@ namespace Session {
       const id = ctx.cookies.get(sessKey);
       if (id) {
         const session = await Session.findOne({ where: { id } });
-        ctx.session = session && session.expiryTo.getTime() > Date.now() ? session : Session.build();
+        ctx.session = session && session.expiryTo.getTime() > Date.now() ? session : new Session();
       } else {
-        ctx.session = Session.build();
+        ctx.session = new Session();
       }
       await next();
       if (ctx.session.changed()) {

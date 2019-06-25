@@ -3,11 +3,10 @@ import { ParameterizedContext } from 'koa';
 declare class Session<T extends Session.DataType> extends Model {
     readonly id: string;
     readonly createAt: Date;
-    expiryTo: Date;
     data: T;
+    expiryTo: Date;
     expiry: number;
     gc(): Promise<number>;
-    private __proxyData;
 }
 declare namespace Session {
     interface Ctx<T extends DataType> {

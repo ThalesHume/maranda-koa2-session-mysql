@@ -13,31 +13,34 @@ function __export(m) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const sequelize_1 = require("sequelize");
 class Session extends sequelize_1.Model {
-    get data() { return this.__proxyData(this.getDataValue('data')); }
-    set data(value) { this.setDataValue('data', value); }
     get expiry() { return this.expiryTo.getTime() - this.createAt.getTime(); }
     set expiry(value) { this.expiryTo = new Date(this.createAt.getTime() + value); }
     gc() {
         return __awaiter(this, void 0, void 0, function* () { return yield Session.destroy({ where: { expiryTo: { [sequelize_1.Op.lt]: new Date() } } }); });
     }
-    __proxyData(target) {
+}
+(function (Session) {
+    function proxyData(session, target) {
         return new Proxy(target, {
             set: (target, key, value) => {
-                this.changed('data', true);
+                session.changed('data', true);
                 return Reflect.set(target, key, value);
             },
             get: (target, key) => {
-                return typeof target[key] !== 'object' ? target[key] : this.__proxyData(target[key]);
+                return typeof target[key] !== 'object' ? target[key] : proxyData(session, target[key]);
             }
         });
     }
-}
-(function (Session) {
     function middware(sequelize, initOptions) {
         const { tableName = undefined, gcOpts = { type: 'auto', probMolecular: 1, probDenominator: 100 }, sync = { enable: false, force: false }, sessKey = 'koa2:sess', logger = true, defaultExpiry = 24 * 60 * 60 * 1000 } = initOptions || {};
         Session.init({
             id: { type: sequelize_1.DataTypes.CHAR(36), primaryKey: true, defaultValue: sequelize_1.DataTypes.UUIDV4 },
-            data: { type: sequelize_1.DataTypes.JSON, defaultValue: {} },
+            data: {
+                type: sequelize_1.DataTypes.JSON,
+                defaultValue: {},
+                get() { return proxyData(this, this.getDataValue('data')); },
+                set(value) { this.setDataValue('data', value); }
+            },
             expiryTo: { type: sequelize_1.DataTypes.DATE, defaultValue: () => new Date(Date.now() + defaultExpiry) },
             createAt: { type: sequelize_1.DataTypes.DATE, defaultValue: sequelize_1.DataTypes.NOW }
         }, {
@@ -53,10 +56,10 @@ class Session extends sequelize_1.Model {
             const id = ctx.cookies.get(sessKey);
             if (id) {
                 const session = yield Session.findOne({ where: { id } });
-                ctx.session = session && session.expiryTo.getTime() > Date.now() ? session : Session.build();
+                ctx.session = session && session.expiryTo.getTime() > Date.now() ? session : new Session();
             }
             else {
-                ctx.session = Session.build();
+                ctx.session = new Session();
             }
             yield next();
             if (ctx.session.changed()) {

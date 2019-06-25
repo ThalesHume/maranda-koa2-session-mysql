@@ -41,5 +41,5 @@
     add undefined into the DataTypes
 ## v3.1.5
     change the error in reademe
-## v3.1.7
+## v3.1.8
     fix a bug that session instance change mark is always true.
