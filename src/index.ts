@@ -5,16 +5,15 @@ class Session<T extends Session.DataType> extends Model {
   readonly id: string;
   readonly createAt: Date;
   expiryTo: Date;
-  //@ts-ignore
-  datas: T = this.__proxyData(this.getDataValue('data'));
+  get data(): T { return this.__proxyData(this.getDataValue('data')); }
+  set data(value: T) { this.setDataValue('data', value); }
   get expiry(): number { return this.expiryTo.getTime() - this.createAt.getTime(); }
   set expiry(value: number) { this.expiryTo = new Date(this.createAt.getTime() + value); }
   async gc() { return await Session.destroy({ where: { expiryTo: { [Op.lt]: new Date() } } }); }
-  
+
   private __proxyData<T extends Session.DataType>(target: T): T {
     return new Proxy(target, {
       set: (target, key, value) => {
-        //@ts-ignore
         this.changed('data', true);
         return Reflect.set(target, key, value);
       },

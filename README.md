@@ -54,15 +54,15 @@ app.use((ctx, next) => {
             passWord = 'sss',
             expiry = 5*24*60*60*1000; //5 days
         ....
-        ctx.session.datas.friend.id = 'xxx';
-        ctx.session.datas.id = code;
+        ctx.session.data.friend.id = 'xxx';
+        ctx.session.data.id = code;
         ctx.session.expiryTo = new Date(Date.now()+expiry);
         //or you can set expiry as :
         ctx.session.expiry = expiry; //means ctx.session.expiryTo = new Date(ctx.session.createAt.getTime() + expiry)
         // if you do not set expiry or the expiryTo, we set cookie by defult, means when you close the window, the session cookie will be deleted
-        // if you do save session datas manully, like 'ctx.session.save()', you must set the cookies by your self, like 'ctx.cookie.set(...)'
+        // if you do save session data manully, like 'ctx.session.save()', you must set the cookies by your self, like 'ctx.cookie.set(...)'
         await next();
-        //do not set your session datas after next, because it will never work only if you do save session datas munully, like 'ctx.session.save()', and then set the cookies by your self
+        //do not set your session data after next, because it will never work only if you do save session data munully, like 'ctx.session.save()', and then set the cookies by your self
         ....
     }
 });

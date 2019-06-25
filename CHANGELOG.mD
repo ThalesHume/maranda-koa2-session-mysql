@@ -41,5 +41,5 @@
     add undefined into the DataTypes
 ## v3.1.5
     change the error in reademe
-## v3.1.6
-    change the ctx.session.data api to the ctx.session.datas
+## v3.1.7
+    fix a bug that session instance change mark is always true.

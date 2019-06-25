@@ -13,11 +13,8 @@ function __export(m) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const sequelize_1 = require("sequelize");
 class Session extends sequelize_1.Model {
-    constructor() {
-        super(...arguments);
-        //@ts-ignore
-        this.datas = this.__proxyData(this.getDataValue('data'));
-    }
+    get data() { return this.__proxyData(this.getDataValue('data')); }
+    set data(value) { this.setDataValue('data', value); }
     get expiry() { return this.expiryTo.getTime() - this.createAt.getTime(); }
     set expiry(value) { this.expiryTo = new Date(this.createAt.getTime() + value); }
     gc() {
@@ -26,7 +23,6 @@ class Session extends sequelize_1.Model {
     __proxyData(target) {
         return new Proxy(target, {
             set: (target, key, value) => {
-                //@ts-ignore
                 this.changed('data', true);
                 return Reflect.set(target, key, value);
             },
