@@ -15,10 +15,9 @@ const sequelize_1 = require("sequelize");
 class Session extends sequelize_1.Model {
     constructor() {
         super(...arguments);
-        this.data = this.__proxyData(this.getDataValue('data'));
+        //@ts-ignore
+        this.datas = this.__proxyData(this.getDataValue('data'));
     }
-    //get data(): object { return JSON.parse(JSON.stringify(this.getDataValue('data'))); }
-    //set data(value: object) { JSON.stringify(value) == JSON.stringify(this.getDataValue('data')) || this.setDataValue('data', value); } 
     get expiry() { return this.expiryTo.getTime() - this.createAt.getTime(); }
     set expiry(value) { this.expiryTo = new Date(this.createAt.getTime() + value); }
     gc() {
@@ -27,6 +26,7 @@ class Session extends sequelize_1.Model {
     __proxyData(target) {
         return new Proxy(target, {
             set: (target, key, value) => {
+                //@ts-ignore
                 this.changed('data', true);
                 return Reflect.set(target, key, value);
             },

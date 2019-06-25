@@ -4,7 +4,7 @@ declare class Session<T extends Session.DataType> extends Model {
     readonly id: string;
     readonly createAt: Date;
     expiryTo: Date;
-    data: T;
+    datas: T;
     expiry: number;
     gc(): Promise<number>;
     private __proxyData;
